@@ -1,0 +1,69 @@
+/* 1. Fuentes primero */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+/* 2. Motor de Tailwind */
+@import "tailwindcss";
+
+/* 3. Configuración de Tema */
+@theme {
+  --color-forest: #1E3A2F;
+  --color-forest-light: #2D5241;
+  --color-forest-muted: #4A7060;
+  --color-sage: #8BAF9C;
+  --color-sage-light: #C2D6CB;
+  --color-cream: #F7F2EA;
+  --color-cream-dark: #EDE8DE;
+  --color-terracotta: #C97B5E;
+  --color-terracotta-light: #F0C4B4;
+  --color-gold: #C9A96E;
+  --color-gold-light: #F0E0BB;
+  --color-studio-text: #1C1C1E;
+  --color-studio-muted: #6B6B6B;
+  --color-studio-light: #9E9E9E;
+
+  --font-display: "Cormorant Garant", Georgia, serif;
+  --font-body: "DM Sans", "Helvetica Neue", sans-serif;
+
+  --radius-studio: 12px;
+  --radius-studio-lg: 18px;
+  --radius-studio-xl: 24px;
+
+  --shadow-card: 0 2px 12px rgba(30, 58, 47, 0.08);
+  --shadow-modal: 0 8px 40px rgba(30, 58, 47, 0.16);
+  --shadow-btn: 0 2px 8px rgba(30, 58, 47, 0.20);
+}
+
+/* 4. Estilos Base */
+@layer base {
+  html, body {
+    background-color: var(--color-cream);
+    font-family: var(--font-body);
+    color: var(--color-studio-text);
+    -webkit-font-smoothing: antialiased;
+    font-size: 15px;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.025em;
+  }
+}
+
+/* 5. Componentes */
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-full
+           font-body text-sm font-medium cursor-pointer
+           transition-all duration-200 border-0 no-underline;
+  }
+  .btn-primary {
+    @apply bg-forest text-cream shadow-btn
+           hover:bg-forest-light hover:-translate-y-px
+           active:translate-y-0;
+  }
+  /* Agrega el resto de tus clases aquí abajo... */
+  .card {
+    @apply bg-white rounded-studio-lg shadow-card p-6;
+  }
+}

@@ -1,0 +1,51 @@
+<div class="flex min-h-screen">
+
+  <!-- ====== SIDEBAR ====== -->
+  <aside
+    class="bg-forest flex flex-col sticky top-0 h-screen overflow-hidden
+           transition-all duration-300 shrink-0"
+    [class.w-60]="!collapsed()"
+    [class.w-16]="collapsed()">
+
+    <!-- Brand -->
+    <div class="flex items-center gap-3 px-4 pt-6 pb-8 overflow-hidden">
+      <span class="text-2xl shrink-0">🌿</span>
+      @if (!collapsed()) {
+        <span class="font-display text-cream text-lg whitespace-nowrap">
+          Marcela Pilates Studio
+        </span>
+      }
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex flex-col gap-1 px-2 flex-1">
+      @for (item of navItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="!bg-sage/25 !text-cream font-medium"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-studio
+                 text-cream/65 text-sm transition-all duration-150
+                 hover:bg-white/10 hover:text-cream overflow-hidden whitespace-nowrap">
+          <span class="text-lg shrink-0">{{ item.icon }}</span>
+          @if (!collapsed()) {
+            <span>{{ item.label }}</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <!-- Collapse toggle -->
+    <button
+      (click)="collapsed.set(!collapsed())"
+      class="mx-2 mb-4 p-2 rounded-studio bg-white/10 text-cream
+             hover:bg-white/20 transition-colors text-sm">
+      {{ collapsed() ? '→' : '←' }}
+    </button>
+  </aside>
+
+  <!-- ====== MAIN CONTENT ====== -->
+  <main class="flex-1 p-8 overflow-y-auto max-h-screen bg-cream">
+    <router-outlet />
+  </main>
+
+</div>
