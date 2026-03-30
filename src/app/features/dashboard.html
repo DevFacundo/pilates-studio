@@ -1,137 +1,60 @@
 <div class="max-w-5xl">
-
-  <!-- Header -->
   <header class="mb-8">
     <h1 class="text-4xl text-forest">Buen día, Profe 🌿</h1>
-    <p class="text-studio-muted mt-1">
-      {{ today | date:'EEEE d \'de\' MMMM, yyyy'}}
-    </p>
+    <p class="text-studio-muted mt-1">{{ today | date:'EEEE d \'de\' MMMM, yyyy'}}</p>
   </header>
 
   @if (loading()) {
-    <div class="flex items-center justify-center py-20 text-studio-muted">
-      Cargando...
-    </div>
+    <div class="flex items-center justify-center py-20 text-studio-muted">Cargando...</div>
   } @else {
-
-    <!-- ===== STATS GRID ===== -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-
-      <!-- Alumnas activas -->
-      <div class="card flex items-start gap-4 hover:-translate-y-0.5 transition-transform">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div class="card flex items-start gap-4">
         <span class="text-3xl mt-0.5">🧘</span>
         <div>
-          <div class="font-display text-4xl text-forest font-semibold leading-none">
-            {{ activeMembers() }}
-          </div>
-          <div class="text-sm font-medium mt-1">Alumnas activas</div>
-          <div class="text-xs text-studio-muted mt-0.5">de {{ totalMembers() }} total</div>
+          <div class="font-display text-4xl text-forest font-semibold leading-none">{{ activeMembers() }}</div>
+          <div class="text-sm font-medium mt-1">Alumnos/as activos</div>
         </div>
       </div>
 
-      <!-- Ingresos del mes -->
-      <div class="card flex items-start gap-4 border border-sage
-                  hover:-translate-y-0.5 transition-transform">
-        <span class="text-3xl mt-0.5">💳</span>
-        <div>
-          <div class="font-display text-3xl text-forest font-semibold leading-none">
-            {{ monthEarnings() | currency:'ARS':'$':'1.0-0' }}
-          </div>
-          <div class="text-sm font-medium mt-1">Ingresos del mes</div>
-          <div class="text-xs text-studio-muted mt-0.5 capitalize">{{ currentMonthName }}</div>
-        </div>
-      </div>
-
-      <!-- Pagos vencidos -->
-      <div class="card flex items-start gap-4 hover:-translate-y-0.5 transition-transform">
+      <a routerLink="/pagos" class="card flex items-start gap-4 hover:-translate-y-0.5 transition-transform border-2 border-transparent hover:border-terracotta/20 group">
         <span class="text-3xl mt-0.5">⚠️</span>
         <div>
-          <div class="font-display text-4xl text-terracotta font-semibold leading-none">
-            {{ expiredCount() }}
-          </div>
+          <div class="font-display text-4xl text-terracotta font-semibold leading-none">{{ expiredCount() }}</div>
           <div class="text-sm font-medium mt-1">Pagos vencidos</div>
-          <div class="text-xs text-studio-muted mt-0.5">requieren atención</div>
+          <div class="text-xs text-terracotta font-medium group-hover:underline">Ver y cobrar →</div>
         </div>
-      </div>
+      </a>
 
-      <!-- Clases hoy -->
-      <div class="card flex items-start gap-4 hover:-translate-y-0.5 transition-transform">
+      <div class="card flex items-start gap-4">
         <span class="text-3xl mt-0.5">🗓️</span>
         <div>
-          <div class="font-display text-4xl text-forest font-semibold leading-none">
-            {{ todayClasses().length }}
-          </div>
+          <div class="font-display text-4xl text-forest font-semibold leading-none">{{ todayClasses().length }}</div>
           <div class="text-sm font-medium mt-1">Clases hoy</div>
-          <div class="text-xs text-studio-muted mt-0.5">
-            {{ todayStudentsTotal() }} alumnas programadas
-          </div>
         </div>
       </div>
-
     </div>
 
-    <!-- ===== BOTTOM COLUMNS ===== -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-      <!-- Clases de hoy -->
-      <div class="card">
-        <h3 class="font-display text-xl mb-4">Clases de Hoy</h3>
-
-        @if (todayClasses().length === 0) {
-          <p class="text-studio-muted text-sm py-4">
-            No hay clases programadas para hoy.
-          </p>
-        } @else {
-          <div class="flex flex-col gap-2">
-            @for (cls of todayClasses(); track cls.id) {
-              <div class="flex justify-between items-center
-                          bg-cream rounded-studio px-4 py-3">
-                <span class="font-medium text-sm">
-                  {{ cls.startTime | slice:0:5 }} — {{ cls.endTime | slice:0:5 }}
-                </span>
-                <div class="flex items-center gap-1.5 text-studio-muted text-sm">
-                  <span class="w-2 h-2 rounded-full"
-                        [class]="capacityDotClass(cls)">
-                  </span>
+    <div class="card">
+      <h3 class="font-display text-2xl mb-6 text-forest">Ocupación de Clases de Hoy</h3>
+      @if (todayClasses().length === 0) {
+        <p class="text-studio-muted text-sm py-4">No hay clases programadas.</p>
+      } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          @for (cls of todayClasses(); track cls.id) {
+            <div class="bg-cream rounded-studio-lg p-4 border border-cream-dark">
+              <div class="flex justify-between items-start mb-2">
+                <span class="font-bold text-forest">{{ cls.startTime | slice:0:5 }} — {{ cls.endTime | slice:0:5 }}</span>
+                <span class="badge" [class]="capacityBadgeClass(cls)">
                   {{ cls.memberIds.length }}/{{ cls.maxCapacity }}
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- Pagos vencidos -->
-      <div class="card">
-        <h3 class="font-display text-xl mb-4">Pagos Vencidos</h3>
-
-        @if (expiredMembers().length === 0) {
-          <p class="text-emerald-600 text-sm py-4">✅ Todo al día</p>
-        } @else {
-          <div class="flex flex-col gap-2">
-            @for (member of expiredMembers() | slice:0:5; track member.id) {
-              <div class="flex justify-between items-center
-                          bg-red-50 rounded-studio px-4 py-3">
-                <span class="text-sm font-medium">
-                  {{ member.firstName }} {{ member.lastName }}
                 </span>
-                <a routerLink="/pagos"
-                   class="text-xs px-3 py-1 rounded-full border border-sage
-                          text-forest hover:bg-cream-dark transition-colors">
-                  Ver
-                </a>
               </div>
-            }
-            @if (expiredMembers().length > 5) {
-              <p class="text-studio-muted text-xs pt-1">
-                +{{ expiredMembers().length - 5 }} más...
-              </p>
-            }
-          </div>
-        }
-      </div>
-
+              <div class="text-xs text-studio-muted">
+                {{ (cls.maxCapacity - cls.memberIds.length) }} lugares disponibles
+              </div>
+            </div>
+          }
+        </div>
+      }
     </div>
-
   }
 </div>

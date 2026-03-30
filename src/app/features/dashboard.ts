@@ -5,14 +5,14 @@ import { forkJoin } from 'rxjs';
 import { MemberService } from '../core/services/member.service';
 import { PaymentService } from '../core/services/payment.service';
 import { ClassScheduleService } from '../core/services/class-schedule.service';
-import { Member } from '../core/models/member';
+import { DebtResponseDto, Member } from '../core/models/member';
 import { ClassSchedule } from '../core/models/class-schedule';
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, CurrencyPipe, DatePipe, SlicePipe],
+  imports: [CommonModule, RouterLink, DatePipe, SlicePipe],
   templateUrl: './dashboard.html',
   providers: [{ provide: LOCALE_ID, useValue: 'es-AR' }]
 })
@@ -25,7 +25,7 @@ export class DashboardComponent implements OnInit {
   totalMembers   = signal(0);
   activeMembers  = signal(0);
   monthEarnings  = signal(0);
-  expiredMembers = signal<Member[]>([]);
+  expiredMembers = signal<DebtResponseDto[]>([]);
   allClasses     = signal<ClassSchedule[]>([]);
 
   expiredCount = computed(() => this.expiredMembers().length);
@@ -46,33 +46,49 @@ export class DashboardComponent implements OnInit {
     return this.today.toLocaleString('es', { month: 'long', year: 'numeric' });
   }
 
-  capacityDotClass(cls: ClassSchedule): string {
-    const ratio = cls.memberIds.length / cls.maxCapacity;
-    if (ratio >= 1)    return 'bg-red-400';
-    if (ratio >= 0.75) return 'bg-yellow-400';
-    return 'bg-emerald-400';
-  }
+  capacityBadgeClass(cls: ClassSchedule): string {
+  const ratio = cls.memberIds.length / cls.maxCapacity;
 
-  ngOnInit() {
-    forkJoin({
-      all:      this.memberService.getAll(),
-      active:   this.memberService.getAllActive(),
-      expired:  this.memberService.getAllWithExpiredPayments(),
-      earnings: this.paymentService.getEarningsForMonth(
-                  this.today.getFullYear(),
-                  this.today.getMonth() + 1
-                ),
-      classes:  this.classScheduleService.getAll(),
-    }).subscribe({
-      next: ({ all, active, expired, earnings, classes }) => {
-        this.totalMembers.set(all.length);
-        this.activeMembers.set(active.length);
-        this.expiredMembers.set(expired);
-        this.monthEarnings.set(earnings);
-        this.allClasses.set(classes);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
-  }
+  if (ratio >= 1) return 'bg-terracotta/15 text-terracotta border-terracotta/20'; // Lleno
+  if (ratio >= 0.75) return 'bg-gold/15 text-gold border-gold/20';               // Casi lleno
+  return 'bg-sage/15 text-forest border-sage/20';                                // Con lugar
+}
+ngOnInit() {
+  this.loading.set(true);
+
+  forkJoin({
+    all:      this.memberService.getAll(),
+    active:   this.memberService.getAllActive(),
+ 
+    expired:  this.paymentService.getDetailedDebts(),
+    classes:  this.classScheduleService.getAll(),
+  }).subscribe({
+    next: ({ all, active, expired, classes }) => {
+      this.totalMembers.set(all.length);
+      this.activeMembers.set(active.length);
+      this.expiredMembers.set(expired); // Aquí recibís el DTO con monthsOwed
+      this.allClasses.set(classes);
+      this.loading.set(false);
+    },
+    error: () => this.loading.set(false),
+  });
+}
+// ngOnInit() {
+//   this.loading.set(true);
+//   forkJoin({
+//     all:      this.memberService.getAll(),
+//     active:   this.memberService.getAllActive(),
+//     expired:  this.memberService.getAllWithExpiredPayments(),
+//     classes:  this.classScheduleService.getAll(),
+//   }).subscribe({
+//     next: ({ all, active, expired, classes }) => {
+//       this.totalMembers.set(all.length);
+//       this.activeMembers.set(active.length);
+//       this.expiredMembers.set(expired);
+//       this.allClasses.set(classes);
+//       this.loading.set(false);
+//     },
+//     error: () => this.loading.set(false),
+//   });
+//   }
 }

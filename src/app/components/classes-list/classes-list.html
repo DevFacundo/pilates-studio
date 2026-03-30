@@ -1,0 +1,175 @@
+<div class="max-w-4xl">
+
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="font-display text-4xl text-forest">Clases</h1>
+    <button class="btn btn-primary" (click)="openCreate()">+ Nueva Clase</button>
+  </div>
+
+  @if (loading()) {
+    <div class="text-center py-20 text-studio-muted">Cargando...</div>
+  } @else {
+
+    @for (day of days; track day) {
+      @let list = schedulesByDay().get(day)!;
+
+      @if (list.length > 0) {
+        <div class="mb-8">
+
+          <!-- Day header -->
+          <div class="flex items-center gap-3 mb-3">
+            <h2 class="font-display text-2xl text-forest">{{ dayLabels[day] }}</h2>
+            <span class="badge badge-active">{{ list.length }} clase(s)</span>
+          </div>
+
+          <!-- Cards grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            @for (s of list; track s.id) {
+              <div class="card p-4 hover:-translate-y-0.5 transition-transform">
+
+                <!-- Time + capacity -->
+                <div class="flex items-start justify-between mb-3">
+                  <div class="font-medium text-sm leading-tight">
+                    {{ s.startTime | slice:0:5 }}<br>
+                    <span class="text-studio-muted">{{ s.endTime | slice:0:5 }}</span>
+                  </div>
+                  <span class="text-xs font-semibold px-2 py-1 rounded-studio border"
+                        [class]="capacityColor(s)">
+                    {{ s.memberIds.length }}/{{ s.maxCapacity }}
+                  </span>
+                </div>
+
+                <!-- Capacity bar -->
+                <div class="w-full bg-cream-dark rounded-full h-1 mb-3">
+                  <div class="h-1 rounded-full transition-all"
+                       [class.bg-emerald-400]="s.memberIds.length / s.maxCapacity < 0.75"
+                       [class.bg-yellow-400]="s.memberIds.length / s.maxCapacity >= 0.75 && s.memberIds.length < s.maxCapacity"
+                       [class.bg-red-400]="s.memberIds.length >= s.maxCapacity"
+                       [style.width.%]="(s.memberIds.length / s.maxCapacity) * 100">
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-1">
+                  <button class="btn-icon text-xs text-studio-muted hover:text-forest flex-1
+                                 bg-cream rounded-studio py-1"
+                          (click)="viewMembers(s)">👥</button>
+                  <button class="btn-icon text-studio-muted hover:text-forest"
+                          (click)="openEdit(s)">✏️</button>
+                  <button class="btn-icon text-studio-muted hover:text-red-500"
+                          (click)="delete(s)">🗑️</button>
+                </div>
+
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    @if (schedules().length === 0) {
+      <div class="card text-center py-12 text-studio-muted">
+        <p class="text-3xl mb-3">🗓️</p>
+        <p class="text-sm">No hay clases creadas todavía.</p>
+      </div>
+    }
+  }
+
+</div>
+
+<!-- MODAL CLASE -->
+@if (showModal()) {
+  <div class="fixed inset-0 bg-forest/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+       (click)="showModal.set(false)">
+    <div class="bg-white rounded-studio-xl shadow-modal w-full max-w-sm"
+         (click)="$event.stopPropagation()">
+
+      <div class="flex items-center justify-between px-6 py-5 border-b border-cream-dark">
+        <h2 class="font-display text-2xl text-forest">
+          {{ isEdit ? 'Editar Clase' : 'Nueva Clase' }}
+        </h2>
+        <button class="btn-icon text-studio-muted" (click)="showModal.set(false)">✕</button>
+      </div>
+
+      <div class="px-6 py-5 space-y-4">
+
+        @if (formError()) {
+          <div class="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-studio">{{ formError() }}</div>
+        }
+
+        <div>
+          <label class="text-xs font-medium text-studio-muted mb-1 block">Día de la semana *</label>
+          <select class="input" [(ngModel)]="form.day">
+            @for (d of days; track d) {
+              <option [value]="d">{{ dayLabels[d] }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-medium text-studio-muted mb-1 block">Hora inicio *</label>
+            <input class="input" type="time" [(ngModel)]="form.startTime">
+          </div>
+          <div>
+            <label class="text-xs font-medium text-studio-muted mb-1 block">Hora fin *</label>
+            <input class="input" type="time" [(ngModel)]="form.endTime">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-medium text-studio-muted mb-1 block">Capacidad máxima</label>
+          <input class="input" type="number" min="1" max="50" [(ngModel)]="form.maxCapacity">
+        </div>
+
+      </div>
+
+      <div class="flex justify-end gap-3 px-6 py-4 border-t border-cream-dark">
+        <button class="btn btn-ghost" (click)="showModal.set(false)">Cancelar</button>
+        <button class="btn btn-primary" (click)="submit()" [disabled]="saving()">
+          @if (saving()) { Guardando... } @else { {{ isEdit ? 'Actualizar' : 'Crear' }} }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- MODAL ALUMNOS EN CLASE -->
+@if (showMembers()) {
+  <div class="fixed inset-0 bg-forest/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+       (click)="showMembers.set(false)">
+    <div class="bg-white rounded-studio-xl shadow-modal w-full max-w-sm"
+         (click)="$event.stopPropagation()">
+
+      <div class="flex items-center justify-between px-6 py-5 border-b border-cream-dark">
+        <h2 class="font-display text-2xl text-forest">
+          Alumnos/as:
+          <span class="text-studio-muted font-body text-xl font-medium ml-1">
+            {{ dayLabels[selectedScheduleForMembers()!.day] }}
+            {{ selectedScheduleForMembers()!.startTime | slice:0:5 }}
+          </span>
+        </h2>
+        <button class="btn-icon text-studio-muted" (click)="showMembers.set(false)">✕</button>
+      </div>
+      <div class="px-6 py-4">
+        @if (membersLoading()) {
+          <p class="text-studio-muted text-sm text-center py-4">Cargando...</p>
+        } @else if (membersOfClass().length === 0) {
+          <p class="text-studio-muted text-sm py-4">No hay alumnos/as inscriptas en esta clase.</p>
+        } @else {
+          <div class="space-y-2">
+            @for (m of membersOfClass(); track m.id) {
+              <div class="flex items-center gap-3 py-2 border-b border-cream-dark last:border-0">
+                <div class="w-8 h-8 rounded-full bg-sage/20 flex items-center justify-center
+                            text-forest font-display text-sm font-semibold">
+                  {{ m.firstName[0] }}{{ m.lastName[0] }}
+                </div>
+                <span class="text-sm font-medium">{{ m.firstName }} {{ m.lastName }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

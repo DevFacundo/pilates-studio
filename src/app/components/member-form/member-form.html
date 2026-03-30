@@ -1,0 +1,157 @@
+<!-- Backdrop -->
+<div class="fixed inset-0 bg-forest/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+     (click)="closed.emit()">
+
+  <!-- Modal -->
+  <div class="bg-white rounded-studio-xl shadow-modal w-full max-w-2xl max-h-[90vh]
+              overflow-y-auto"
+       (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-5 border-b border-cream-dark sticky top-0 bg-white z-10">
+      <h2 class="font-display text-2xl text-forest">{{ title }}</h2>
+      <button class="btn-icon text-studio-muted hover:text-studio-text"
+              (click)="closed.emit()">✕</button>
+    </div>
+
+    <div class="px-6 py-5 space-y-6">
+
+      <!-- Error -->
+      @if (error()) {
+        <div class="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-studio border border-red-200">
+          {{ error() }}
+        </div>
+      }
+
+      <!-- Datos personales -->
+      <section>
+        <h3 class="font-display text-lg text-forest mb-4">Datos Personales</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          <div>
+            <label class="text-xs font-medium text-studio-muted mb-1 block">DNI *</label>
+            <input class="input" type="text" placeholder="12345678"
+                   [(ngModel)]="form.dni" [disabled]="isEdit">
+          </div>
+
+          <div>
+            <!-- spacer en edición para mantener grid -->
+            @if (!isEdit) { <span></span> }
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-studio-muted mb-1 block">Nombre *</label>
+            <input class="input" type="text" placeholder="María"
+                   [(ngModel)]="form.firstName">
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-studio-muted mb-1 block">Apellido *</label>
+            <input class="input" type="text" placeholder="González"
+                   [(ngModel)]="form.lastName">
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-studio-muted mb-1 block">Teléfono *</label>
+            <input class="input" type="tel" placeholder="2234000000"
+                   [(ngModel)]="form.phoneNumber">
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-studio-muted mb-1 block">Teléfono alternativo</label>
+            <input class="input" type="tel" placeholder="Opcional"
+                   [(ngModel)]="form.auxiliaryPhoneNumber">
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-studio-muted mb-1 block">Fecha de nacimiento</label>
+            <input class="input" type="date"
+                   [(ngModel)]="form.birthDate">
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Ficha de salud -->
+      <section>
+        <h3 class="font-display text-lg text-forest mb-4">Ficha de Salud</h3>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="text-xs font-medium text-studio-muted mb-1 block">Altura (cm)</label>
+            <input class="input" type="number" placeholder="165"
+                   [(ngModel)]="form.healthRecord!.height">
+          </div>
+          <div>
+            <label class="text-xs font-medium text-studio-muted mb-1 block">Peso (kg)</label>
+            <input class="input" type="number" placeholder="62"
+                   [(ngModel)]="form.healthRecord!.weight">
+          </div>
+        </div>
+
+        <!-- Patologías -->
+        <label class="text-xs font-medium text-studio-muted mb-2 block">Patologías</label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          @for (p of pathologies(); track p.id) {
+            <label class="flex items-start gap-2 p-3 rounded-studio border border-cream-dark
+                          hover:border-sage cursor-pointer transition-colors"
+                   [class.border-sage]="isPathologySelected(p.id)"
+                   [class.bg-sage/5]="isPathologySelected(p.id)">
+              <input type="checkbox" class="mt-0.5 accent-forest"
+                     [checked]="isPathologySelected(p.id)"
+                     (change)="togglePathology(p.id)">
+              <div>
+                <div class="text-sm font-medium">{{ p.name }}</div>
+                <div class="text-xs text-studio-muted">{{ p.severity }}</div>
+              </div>
+            </label>
+          }
+          @if (pathologies().length === 0) {
+            <p class="text-studio-muted text-xs col-span-2">No hay patologías cargadas.</p>
+          }
+        </div>
+      </section>
+
+      <!-- Clases -->
+      <section>
+        <h3 class="font-display text-lg text-forest mb-4">Clases Asignadas</h3>
+        @for (day of dayOrder; track day) {
+          @if (schedulesByDay(day).length > 0) {
+            <div class="mb-3">
+              <p class="text-xs font-medium text-studio-muted uppercase tracking-wider mb-2">
+                {{ dayLabels[day] }}
+              </p>
+              <div class="flex flex-wrap gap-2">
+                @for (s of schedulesByDay(day); track s.id) {
+                  <label class="flex items-center gap-2 px-3 py-2 rounded-studio border
+                                border-cream-dark hover:border-sage cursor-pointer transition-colors text-sm"
+                         [class.border-forest]="isScheduleSelected(s.id)"
+                         [class.bg-forest/5]="isScheduleSelected(s.id)">
+                    <input type="checkbox" class="accent-forest"
+                           [checked]="isScheduleSelected(s.id)"
+                           (change)="toggleSchedule(s.id)">
+                    {{ s.startTime | slice:0:5 }} – {{ s.endTime | slice:0:5 }}
+                    <span class="text-xs text-studio-muted">
+                      ({{ s.memberIds.length }}/{{ s.maxCapacity }})
+                    </span>
+                  </label>
+                }
+              </div>
+            </div>
+          }
+        }
+      </section>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="flex justify-end gap-3 px-6 py-4 border-t border-cream-dark sticky bottom-0 bg-white">
+      <button class="btn btn-ghost" (click)="closed.emit()" [disabled]="saving()">
+        Cancelar
+      </button>
+      <button class="btn btn-primary" (click)="submit()" [disabled]="saving()">
+        @if (saving()) { Guardando... } @else { {{ isEdit ? 'Actualizar' : 'Crear Alumna' }} }
+      </button>
+    </div>
+
+  </div>
+</div>

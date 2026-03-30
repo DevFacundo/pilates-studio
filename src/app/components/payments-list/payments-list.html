@@ -1,0 +1,160 @@
+<div class="max-w-4xl">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="font-display text-4xl text-forest">Pagos</h1>
+    <button class="btn btn-primary" (click)="openNewPayment()">+ Registrar Pago</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-1 bg-cream-dark rounded-studio p-1 mb-6 w-fit">
+    @for (tab of tabs; track tab.k) {
+      <button
+        (click)="activeTab.set(tab.k)"
+        class="px-4 py-1.5 rounded-[10px] text-sm font-medium transition-all"
+        [class.bg-white]="activeTab() === tab.k"
+        [class.shadow-card]="activeTab() === tab.k"
+        [class.text-forest]="activeTab() === tab.k"
+        [class.text-studio-muted]="activeTab() !== tab.k">
+        {{ tab.l }}
+        @if (tab.k === 'overdue' && overdue().length > 0) {
+          <span class="ml-1.5 bg-terracotta text-white text-xs px-1.5 py-0.5 rounded-full">
+            {{ overdue().length }}
+          </span>
+        }
+      </button>
+    }
+  </div>
+
+  <!-- Search -->
+  <div class="relative mb-4 max-w-sm">
+    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-studio-light text-sm">🔍</span>
+    <input class="input pl-9" type="text" placeholder="Buscar por alumna o monto..."
+           [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)">
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="text-center py-20 text-studio-muted">Cargando...</div>
+  }
+
+  <!-- List -->
+  @else {
+    <div class="space-y-3">
+      @if (filtered().length === 0) {
+        <div class="card text-center py-12 text-studio-muted">
+          @if (activeTab() === 'overdue') {
+            <p class="text-3xl mb-3">✅</p>
+            <p class="text-sm">No hay cuotas vencidas.</p>
+          } @else {
+            <p class="text-sm">Sin pagos registrados.</p>
+          }
+        </div>
+      }
+
+    @for (payment of filtered(); track payment.id) {
+  <div class="card flex items-center justify-between gap-4"
+       [class.bg-red-50]="isExpiredFn(payment.expirationDate)"
+       [class.border-red-200]="isExpiredFn(payment.expirationDate)">
+
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="font-medium text-sm">
+          {{ payment.memberName }}
+        </span>
+
+        @if (isExpiredFn(payment.expirationDate)) {
+          <span class="badge badge-overdue">
+            {{ daysOverdueFn(payment.expirationDate) }} días de retraso
+          </span>
+        } @else {
+          <span class="badge badge-paid">Vigente</span>
+        }
+      </div>
+
+      <div class="flex items-center gap-3 mt-1.5 text-xs text-studio-muted">
+        <span>💲 {{ payment.amount | currency:'ARS':'$':'1.0-0' }}</span>
+        <span>🗓️ Vence: {{ payment.expirationDate | date:'dd/MM/yyyy' }}</span>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 shrink-0">
+      @if (isExpiredFn(payment.expirationDate)) {
+        <button class="btn btn-primary text-xs px-4 py-2" (click)="markAsPaid(payment)">
+          Registrar nuevo mes
+        </button>
+      }
+      <button class="btn btn-danger btn-icon" (click)="deletePayment(payment.id)">🗑️</button>
+    </div>
+  </div>
+}
+    </div>
+  }
+
+</div>
+
+<!-- ===== MODAL NUEVO PAGO ===== -->
+@if (showForm()) {
+  <div class="fixed inset-0 bg-forest/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+       (click)="showForm.set(false)">
+    <div class="bg-white rounded-studio-xl shadow-modal w-full max-w-md"
+         (click)="$event.stopPropagation()">
+
+      <div class="flex items-center justify-between px-6 py-5 border-b border-cream-dark">
+        <h2 class="font-display text-2xl text-forest">Registrar Pago</h2>
+        <button class="btn-icon text-studio-muted" (click)="showForm.set(false)">✕</button>
+      </div>
+
+      <div class="px-6 py-5 space-y-4">
+
+        @if (formError()) {
+          <div class="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-studio">{{ formError() }}</div>
+        }
+
+        <div>
+          <label class="text-xs font-medium text-studio-muted mb-1 block">Alumna *</label>
+          <select class="input" [(ngModel)]="newForm.memberId">
+            <option [value]="0" disabled>Seleccionar...</option>
+            @for (m of members(); track m.id) {
+              <option [value]="m.id">{{ m.firstName }} {{ m.lastName }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs font-medium text-studio-muted mb-1 block">Plan *</label>
+          <select class="input" [(ngModel)]="newForm.membershipPlanId">
+            <option [value]="0" disabled>Seleccionar...</option>
+            @for (p of plans(); track p.id) {
+              <option [value]="p.id">{{ planLabels[p.planName] }} — {{ p.price | currency:'ARS':'$':'1.0-0' }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs font-medium text-studio-muted mb-1 block">
+            Monto (opcional — usa el precio del plan si no se especifica)
+          </label>
+          <input class="input" type="number" placeholder="Dejar vacío para precio del plan"
+                 [(ngModel)]="newForm.amount">
+        </div>
+
+        <div>
+          <label class="text-xs font-medium text-studio-muted mb-1 block">
+            Fecha de pago (opcional — hoy por defecto)
+          </label>
+          <input class="input" type="date" [(ngModel)]="newForm.paymentDate">
+        </div>
+
+      </div>
+
+      <div class="flex justify-end gap-3 px-6 py-4 border-t border-cream-dark">
+        <button class="btn btn-ghost" (click)="showForm.set(false)">Cancelar</button>
+        <button class="btn btn-primary" (click)="submitForm()" [disabled]="saving()">
+          @if (saving()) { Guardando... } @else { Registrar Pago }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

@@ -18,12 +18,13 @@ export class MainLayoutComponent {
   collapsed = signal(false);
 
   navItems: NavItem[] = [
-    { path: 'dashboard',  label: 'Dashboard',       icon: '📊' },
+    { path: 'dashboard',  label: 'Inicio',       icon: '📊' },
     { path: 'alumnos',    label: 'Alumnos',          icon: '🧘' },
     { path: 'pagos',      label: 'Pagos',            icon: '💳' },
     { path: 'clases',     label: 'Clases',           icon: '🗓️' },
     { path: 'patologias', label: 'Patologías',       icon: '🩺' },
     { path: 'planes',     label: 'Planes',           icon: '📋' },
+    { path: 'estadisticas', label: 'Estadisticas',      icon: '📈' },
   ];
 
 }

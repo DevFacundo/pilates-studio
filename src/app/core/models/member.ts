@@ -28,6 +28,13 @@ export interface MemberRequest {
   healthRecord?: HealthRecordRequest;
   classScheduleId?: number[];
 }
+export interface DebtResponseDto {
+    memberId: number;
+    memberName: string;
+    monthsOwed: number;
+    totalDebtAmount: number;
+    lastExpirationDate: string; // Las fechas de Java llegan como String (ISO) a JS
+}
 
 export function fullName(member: Member): string {
   return `${member.firstName} ${member.lastName}`;

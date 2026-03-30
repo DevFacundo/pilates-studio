@@ -3,12 +3,17 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Payment, PaymentRequest } from '../models/payment';
+import { DebtResponseDto } from '../models/member';
 
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
   private http = inject(HttpClient);
   private base = `${environment.apiUrl}/payments`;
 
+
+  getLatestPerMember(): Observable<Payment[]> {
+    return this.http.get<Payment[]>(`${this.base}/latest`);
+  }
   getById(id: number): Observable<Payment> {
     return this.http.get<Payment>(`${this.base}/${id}`);
   }
@@ -47,4 +52,15 @@ export class PaymentService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
+getDetailedDebts(): Observable<DebtResponseDto[]> {
+  return this.http.get<DebtResponseDto[]>(`${this.base}/debts`);
+}
+
+// Ya que estamos, agregamos el de ganancias por mes que usamos en el Dashboard
+calculateEarningsForMonth(year: number, month: number): Observable<number> {
+  return this.http.get<number>(`${this.base}/earnings?year=${year}&month=${month}`);
+}
+
+
+
 }

@@ -6,6 +6,7 @@ export interface Payment {
   paymentDate: string;      // 'YYYY-MM-DD'
   expirationDate: string;   // 'YYYY-MM-DD'
   memberId: number;
+  memberName: string;
   membershipPlanId: number;
   status?: PaymentStatus;   // Una vez que lo agregues al back
 }

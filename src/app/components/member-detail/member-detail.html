@@ -1,0 +1,186 @@
+<!-- Backdrop -->
+<div class="fixed inset-0 bg-forest/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+     (click)="closed.emit()">
+
+  <div class="bg-white rounded-studio-xl shadow-modal w-full max-w-xl max-h-[90vh]
+              flex flex-col"
+       (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="flex items-start justify-between px-6 py-5 border-b border-cream-dark">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-sage/20 flex items-center justify-center
+                    text-forest font-display text-xl font-semibold">
+          {{ member.firstName[0] }}{{ member.lastName[0] }}
+        </div>
+        <div>
+          <h2 class="font-display text-2xl text-forest leading-tight">
+            {{ member.firstName }} {{ member.lastName }}
+          </h2>
+          <span [class]="member.active ? 'badge badge-active' : 'badge badge-overdue'">
+            {{ member.active ? 'Activa' : 'Inactiva' }}
+          </span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-ghost text-xs px-3 py-1.5"
+                (click)="editRequested.emit(member); closed.emit()">
+          ✏️ Editar
+        </button>
+        <button class="btn-icon text-studio-muted" (click)="closed.emit()">✕</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-cream-dark px-6">
+      @for (tab of tabs; track tab.key) {
+        <button
+          (click)="activeTab.set(tab.key)"
+          class="px-4 py-3 text-sm font-medium border-b-2 transition-colors -mb-px"
+          [class.border-forest]="activeTab() === tab.key"
+          [class.text-forest]="activeTab() === tab.key"
+          [class.border-transparent]="activeTab() !== tab.key"
+          [class.text-studio-muted]="activeTab() !== tab.key">
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto px-6 py-5">
+
+      <!-- TAB: Personal -->
+      @if (activeTab() === 'personal') {
+        <div class="space-y-3">
+
+          @for (row of [
+            {label:'DNI', value: member.dni},
+            {label:'Teléfono', value: member.phoneNumber},
+            {label:'Tel. alternativo', value: member.auxiliaryPhoneNumber || '—'},
+            {label:'Fecha de nacimiento', value: (member.birthDate | date:'dd/MM/yyyy') || '—'},
+            {label:'Alta en el sistema', value: (member.signUpDate | date:'dd/MM/yyyy') || '—'}
+          ]; track row.label) {
+            <div class="flex justify-between items-center py-2.5 border-b border-cream-dark last:border-0">
+              <span class="text-xs text-studio-muted uppercase tracking-wide">{{ row.label }}</span>
+              <span class="text-sm font-medium">{{ row.value }}</span>
+            </div>
+          }
+
+        </div>
+      }
+
+      <!-- TAB: Salud -->
+      @if (activeTab() === 'salud') {
+        <div class="space-y-4">
+
+          @if (member.healthRecord) {
+            <!-- Stats físicos -->
+            <div class="grid grid-cols-3 gap-3">
+              <div class="bg-cream rounded-studio p-4 text-center">
+                <div class="font-display text-2xl text-forest">{{ member.healthRecord.height }}</div>
+                <div class="text-xs text-studio-muted mt-1">cm altura</div>
+              </div>
+              <div class="bg-cream rounded-studio p-4 text-center">
+                <div class="font-display text-2xl text-forest">{{ member.healthRecord.weight }}</div>
+                <div class="text-xs text-studio-muted mt-1">kg peso</div>
+              </div>
+              @if (imc) {
+                <div class="bg-cream rounded-studio p-4 text-center">
+                  <div class="font-display text-2xl font-semibold" [style.color]="imcInfo!.color">
+                    {{ imc }}
+                  </div>
+                  <div class="text-xs mt-1" [style.color]="imcInfo!.color">{{ imcInfo!.label }}</div>
+                </div>
+              }
+            </div>
+
+            <!-- Patologías -->
+            <div>
+              <h4 class="text-xs font-medium text-studio-muted uppercase tracking-wide mb-2">
+                Patologías
+              </h4>
+              @if (member.healthRecord.pathologies.length) {
+                <div class="space-y-2">
+                  @for (p of member.healthRecord.pathologies; track p.id) {
+                    <div class="p-3 rounded-studio border border-cream-dark">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="font-medium text-sm">{{ p.name }}</span>
+                        <span [class]="'badge badge-' + p.severity">
+                          {{ p.severity }}
+                        </span>
+                      </div>
+                      @if (p.description) {
+                        <p class="text-xs text-studio-muted">{{ p.description }}</p>
+                      }
+                      @if (p.recommendations) {
+                        <p class="text-xs text-forest/80 mt-1 italic">
+                          💡 {{ p.recommendations }}
+                        </p>
+                      }
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="text-studio-muted text-sm">Sin patologías registradas.</p>
+              }
+            </div>
+
+          } @else {
+            <p class="text-studio-muted text-sm py-4">Sin ficha de salud registrada.</p>
+          }
+
+        </div>
+      }
+
+      <!-- TAB: Pagos -->
+      @if (activeTab() === 'pagos') {
+        <div class="space-y-2">
+          @if (payments().length === 0) {
+            <p class="text-studio-muted text-sm py-4">Sin historial de pagos.</p>
+          } @else {
+            @for (payment of payments(); track payment.id) {
+              <div class="flex items-center justify-between p-4 rounded-studio border border-cream-dark">
+                <div>
+                  <div class="font-medium text-sm">
+                    {{ payment.amount | currency:'ARS':'$':'1.0-0' }}
+                  </div>
+                  <div class="text-xs text-studio-muted mt-0.5">
+                    Pago: {{ payment.paymentDate | date:'dd/MM/yyyy' }} ·
+                    Vence: {{ payment.expirationDate | date:'dd/MM/yyyy' }}
+                  </div>
+                </div>
+                @if (isExpired(payment.expirationDate)) {
+                  <span class="badge badge-overdue">
+                    {{ daysOverdue(payment.expirationDate) }}d vencido
+                  </span>
+                } @else {
+                  <span class="badge badge-paid">Vigente</span>
+                }
+              </div>
+            }
+          }
+        </div>
+      }
+
+      <!-- TAB: Clases -->
+      @if (activeTab() === 'clases') {
+        <div class="space-y-2">
+          @if (!member.classSchedules.length) {
+            <p class="text-studio-muted text-sm py-4">Sin clases asignadas.</p>
+          } @else {
+            @for (s of member.classSchedules; track s.id) {
+              <div class="flex items-center justify-between p-4 rounded-studio bg-cream">
+                <span class="font-medium text-sm">{{ dayLabels[s.day] }}</span>
+                <span class="text-sm text-studio-muted">
+                  {{ s.startTime | slice:0:5 }} — {{ s.endTime | slice:0:5 }}
+                </span>
+              </div>
+            }
+          }
+        </div>
+      }
+
+    </div>
+
+  </div>
+</div>

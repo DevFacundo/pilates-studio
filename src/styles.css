@@ -62,8 +62,47 @@
            hover:bg-forest-light hover:-translate-y-px
            active:translate-y-0;
   }
-  /* Agrega el resto de tus clases aquí abajo... */
   .card {
     @apply bg-white rounded-studio-lg shadow-card p-6;
   }
+.input {
+    @apply w-full bg-white border border-cream-dark rounded-studio px-4 py-2.5
+           text-sm text-studio-text transition-all duration-200
+           placeholder:text-studio-light outline-none;
+  }
+
+  /* Estado cuando haces clic en el input */
+  .input:focus {
+    @apply border-sage ring-2 ring-sage/10 bg-white;
+  }
+
+  /* Estado cuando está deshabilitado (como el DNI en edición) */
+  .input:disabled {
+    @apply bg-cream-dark/30 text-studio-light cursor-not-allowed border-transparent;
+  }
+
+  /* Estilo para el input de fecha (especial) */
+  input[type="date"].input {
+    @apply cursor-pointer;
+  }
+  /* Badges de Estado */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider;
+  }
+
+  /* El "Vigente" en Verde Sage */
+  .badge-paid {
+    @apply bg-sage/15 text-forest border border-sage/20;
+  }
+
+  /* El "Retraso" en Rojo Terracotta */
+  .badge-overdue {
+    @apply bg-terracotta/15 text-terracotta border border-terracotta/20;
+  }
+
+  /* Botón de tacho (opcional para que se vea pro) */
+  .btn-danger {
+    @apply p-2 rounded-full text-studio-light hover:bg-red-50 hover:text-red-500 transition-colors;
+  }
+
 }

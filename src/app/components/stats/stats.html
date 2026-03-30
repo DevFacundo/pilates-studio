@@ -1,0 +1,65 @@
+<div class="max-w-6xl p-6 mx-auto">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <h1 class="font-display text-4xl text-forest">Análisis de Ingresos</h1>
+
+    <div class="flex gap-2 bg-cream-dark p-2 rounded-studio shadow-inner">
+      <select class="select-clean" [(ngModel)]="selectedMonth" (change)="onFilterChange()">
+        @for (m of months; track m.v) { <option [value]="m.v">{{ m.n }}</option> }
+      </select>
+      <select class="select-clean" [(ngModel)]="selectedYear" (change)="onFilterChange()">
+        @for (y of years; track y) { <option [value]="y">{{ y }}</option> }
+      </select>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+    <div class="card bg-forest text-cream p-8 shadow-xl relative overflow-hidden">
+      <div class="relative z-10">
+        <p class="text-sage-light text-xs uppercase tracking-widest font-bold">Recaudado</p>
+        <h2 class="font-display text-6xl mt-2">{{ monthEarnings() | currency:'ARS':'$':'1.0-0' }}</h2>
+      </div>
+      <span class="absolute -right-4 -bottom-4 text-9xl opacity-10">💰</span>
+    </div>
+
+    <div class="card bg-white border-2 border-terracotta/20 p-8 shadow-sm relative overflow-hidden">
+      <div class="relative z-10">
+        <p class="text-terracotta text-xs uppercase tracking-widest font-bold">Deuda Pendiente Total</p>
+        <h2 class="font-display text-6xl mt-2 text-forest">{{ totalPendingDebt() | currency:'ARS':'$':'1.0-0' }}</h2>
+      </div>
+      <span class="absolute -right-4 -bottom-4 text-9xl opacity-5 text-terracotta">📉</span>
+    </div>
+  </div>
+
+  <div class="card bg-white p-6 shadow-sm border border-cream-dark">
+    <h3 class="font-display text-2xl text-forest mb-6">Detalle de Deudoras</h3>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="text-xs uppercase text-studio-muted border-b border-cream-dark">
+            <th class="pb-4 font-bold">Alumna</th>
+            <th class="pb-4 font-bold">Meses</th>
+            <th class="pb-4 font-bold text-right">Total Deuda</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm">
+          @for (debt of debtDetails(); track debt.memberId) {
+            <tr class="border-b border-cream-dark/50 last:border-0">
+              <td class="py-4 font-medium text-forest">{{ debt.memberName }}</td>
+              <td class="py-4">
+                <span class="badge badge-overdue text-[10px]">{{ debt.monthsOwed }} meses</span>
+              </td>
+              <td class="py-4 text-right font-bold text-forest">
+                {{ debt.totalDebtAmount | currency:'ARS':'$':'1.0-0' }}
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3" class="py-10 text-center text-studio-muted italic">No hay deudas pendientes ✨</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
